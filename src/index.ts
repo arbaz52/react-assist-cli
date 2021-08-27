@@ -1,12 +1,28 @@
 import fs from "fs";
 import path from "path";
+import Handlebars from "handlebars";
 
 import fsp from "fs/promises";
-
-type Structure = (Folder | File)[];
+import upperFirst from "lodash/upperFirst";
 
 interface FS {
   make: (base: string) => void;
+}
+interface ITemplateComponent {
+  componentName: string;
+}
+interface ITemplateContext {
+  contextName: string;
+}
+
+enum ETemplate {
+  CONTEXT = "context.tsx.hbs",
+  COMPONENT = "component.tsx.hbs",
+}
+type Structure = (Folder | File<ETemplate>)[];
+interface ITemplate {
+  [ETemplate.CONTEXT]: ITemplateContext;
+  [ETemplate.COMPONENT]: ITemplateComponent;
 }
 
 class Folder implements FS {
@@ -15,7 +31,9 @@ class Folder implements FS {
   async make(base: string) {
     const folderPath = path.join(base, this.name);
     try {
-      await fsp.mkdir(folderPath);
+      if (!fs.existsSync(folderPath)) {
+        await fsp.mkdir(folderPath);
+      }
       this.structure.forEach((entry) => {
         entry.make(folderPath);
       });
@@ -25,27 +43,64 @@ class Folder implements FS {
   }
 }
 
-class File implements FS {
-  constructor(private name: string, private template: string | null = null) {}
+const getTemplate = async <Template>(file: ETemplate) => {
+  try {
+    const filePath = path.join(__dirname, "..", "templates", file);
+    const template = await fsp.readFile(filePath, "utf-8");
+    return Handlebars.compile<Template>(template);
+  } catch (ex) {
+    console.error(ex);
+    return "";
+  }
+};
+
+class File<TemplateType extends ETemplate> implements FS {
+  constructor(
+    private name: string,
+    private templatePath: TemplateType | null = null,
+    private templateData: ITemplate[TemplateType] | null = null
+  ) {}
   async make(base: string) {
     const folderPath = path.join(base, this.name);
     try {
-      await fsp.writeFile(folderPath, "");
+      let content = "";
+      if (this.templatePath && this.templateData) {
+        const template = await getTemplate<ITemplate[TemplateType]>(
+          this.templatePath
+        );
+        if (typeof template !== "string") {
+          content = template(this.templateData);
+        }
+      }
+      await fsp.writeFile(folderPath, content);
     } catch (ex) {
       console.trace(ex);
     }
   }
 }
 
+const getComponentDirectory = (name: string) => {
+  return new Folder(name, [
+    new File("types.ts"),
+    new File("index.tsx", ETemplate.COMPONENT, {
+      componentName: upperFirst(name),
+    }),
+    new File("index.styled.ts"),
+  ]);
+};
+
+const getContextDirectory = (name: string) => {
+  return new Folder(name, [
+    new File("types.ts"),
+    new File("index.tsx", ETemplate.CONTEXT, {
+      contextName: upperFirst(name),
+    }),
+  ]);
+};
+
 const src = new Folder("src", [
-  new Folder("components", [
-    new Folder("App", [
-      new File("types.ts"),
-      new File("index.tsx"),
-      new File("index.styled.ts"),
-    ]),
-  ]),
-  new Folder("contexts", []),
+  new Folder("components", [getComponentDirectory("app")]),
+  new Folder("contexts", [getContextDirectory("testContext")]),
 ]);
 
 const __main__ = async () => {
