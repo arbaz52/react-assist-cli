@@ -1,83 +1,11 @@
 import fs from "fs";
 import path from "path";
-import Handlebars from "handlebars";
 
 import fsp from "fs/promises";
 import upperFirst from "lodash/upperFirst";
 
-interface FS {
-  make: (base: string) => void;
-}
-interface ITemplateComponent {
-  componentName: string;
-}
-interface ITemplateContext {
-  contextName: string;
-}
-
-enum ETemplate {
-  CONTEXT = "context.tsx.hbs",
-  COMPONENT = "component.tsx.hbs",
-}
-type Structure = (Folder | File<ETemplate>)[];
-interface ITemplate {
-  [ETemplate.CONTEXT]: ITemplateContext;
-  [ETemplate.COMPONENT]: ITemplateComponent;
-}
-
-class Folder implements FS {
-  constructor(private name: string, private structure: Structure) {}
-
-  async make(base: string) {
-    const folderPath = path.join(base, this.name);
-    try {
-      if (!fs.existsSync(folderPath)) {
-        await fsp.mkdir(folderPath);
-      }
-      this.structure.forEach((entry) => {
-        entry.make(folderPath);
-      });
-    } catch (ex) {
-      console.trace(ex);
-    }
-  }
-}
-
-const getTemplate = async <Template>(file: ETemplate) => {
-  try {
-    const filePath = path.join(__dirname, "..", "templates", file);
-    const template = await fsp.readFile(filePath, "utf-8");
-    return Handlebars.compile<Template>(template);
-  } catch (ex) {
-    console.error(ex);
-    return "";
-  }
-};
-
-class File<TemplateType extends ETemplate> implements FS {
-  constructor(
-    private name: string,
-    private templatePath: TemplateType | null = null,
-    private templateData: ITemplate[TemplateType] | null = null
-  ) {}
-  async make(base: string) {
-    const folderPath = path.join(base, this.name);
-    try {
-      let content = "";
-      if (this.templatePath && this.templateData) {
-        const template = await getTemplate<ITemplate[TemplateType]>(
-          this.templatePath
-        );
-        if (typeof template !== "string") {
-          content = template(this.templateData);
-        }
-      }
-      await fsp.writeFile(folderPath, content);
-    } catch (ex) {
-      console.trace(ex);
-    }
-  }
-}
+import Folder from "./Folder";
+import File, { ETemplate } from "./File";
 
 const getComponentDirectory = (name: string) => {
   return new Folder(name, [

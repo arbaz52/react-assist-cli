@@ -17,6 +17,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./build",
+    "watch": "nodemon --watch \"./src\" --ext \"ts,json\" --exec \"yarn build\"",
     "start:dev": "nodemon --watch \"./src\" --ext \"ts,json\" --exec \"yarn build && yarn start\""
   },
   "dependencies": {
