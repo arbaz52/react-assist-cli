@@ -1,6 +1,6 @@
 import inquirer from "inquirer";
-import { getComponentDirectory } from "../../utils";
 import createComponentMenu from "../createComponent";
+import createContextMenu from "../createContext";
 
 import { EQuestionName, EWhatToDoOptions, IAnswers } from "./types";
 
@@ -22,6 +22,10 @@ const mainMenu = async () => {
   switch (answers[EQuestionName.WHAT_TO_DO]) {
     case EWhatToDoOptions.CREATE_COMPONENT: {
       await createComponentMenu();
+      break;
+    }
+    case EWhatToDoOptions.CREATE_CONTEXT: {
+      await createContextMenu();
       break;
     }
   }

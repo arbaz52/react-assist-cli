@@ -1,5 +1,8 @@
 import inquirer from "inquirer";
-import { getComponentDirectory, getTestFolderPath } from "../../utils";
+
+import { getBasePath } from "../../utils";
+import { getComponentDirectory } from "./utils";
+
 import { EQuestionName, IAnswers } from "./types";
 
 const createComponentMenu = async () => {
@@ -12,7 +15,7 @@ const createComponentMenu = async () => {
   ]);
 
   const dir = getComponentDirectory(answers[EQuestionName.COMPONENT_NAME]);
-  dir.make(getTestFolderPath());
+  dir.make(getBasePath());
 };
 
 export default createComponentMenu;
