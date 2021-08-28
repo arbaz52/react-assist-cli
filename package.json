@@ -5,6 +5,7 @@
   "license": "MIT",
   "private": "false",
   "devDependencies": {
+    "@types/inquirer": "^7.3.3",
     "@types/lodash": "^4.14.172",
     "@types/node": "^16.7.4",
     "nodemon": "^2.0.12",
@@ -22,6 +23,8 @@
   },
   "dependencies": {
     "handlebars": "^4.7.7",
-    "lodash": "^4.17.21"
+    "inquirer": "^8.1.2",
+    "lodash": "^4.17.21",
+    "rxjs": "^7.3.0"
   }
 }

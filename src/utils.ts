@@ -1,3 +1,5 @@
+import path from "path";
+
 import upperFirst from "lodash/upperFirst";
 
 import Folder from "./Folder";
@@ -21,3 +23,6 @@ export const getContextDirectory = (name: string) => {
     }),
   ]);
 };
+
+export const getTestFolderPath = () =>
+  path.join(path.dirname(require.main?.filename ?? ""), "..", "test");
