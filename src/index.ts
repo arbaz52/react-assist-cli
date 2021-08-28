@@ -2,29 +2,9 @@ import fs from "fs";
 import path from "path";
 
 import fsp from "fs/promises";
-import upperFirst from "lodash/upperFirst";
 
 import Folder from "./Folder";
-import File, { ETemplate } from "./File";
-
-const getComponentDirectory = (name: string) => {
-  return new Folder(name, [
-    new File("types.ts"),
-    new File("index.tsx", ETemplate.COMPONENT, {
-      componentName: upperFirst(name),
-    }),
-    new File("index.styled.ts"),
-  ]);
-};
-
-const getContextDirectory = (name: string) => {
-  return new Folder(name, [
-    new File("types.ts"),
-    new File("index.tsx", ETemplate.CONTEXT, {
-      contextName: upperFirst(name),
-    }),
-  ]);
-};
+import { getComponentDirectory, getContextDirectory } from "./utils";
 
 const src = new Folder("src", [
   new Folder("components", [getComponentDirectory("app")]),
